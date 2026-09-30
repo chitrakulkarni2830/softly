@@ -1,20 +1,32 @@
 import { Caprasimo_400Regular, useFonts } from "@expo-google-fonts/caprasimo";
 import { BlurTargetView, BlurView } from "expo-blur";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   ImageBackground,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 
-
-// flash screen
 export default function HomeScreen() {
   const [fontsLoaded] = useFonts({
     Caprasimo_400Regular,
   });
+
+  const scale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      Animated.timing(scale, {
+        toValue: 0,
+        duration: 350,
+        useNativeDriver: true,
+      }).start();
+    }, 900);
+
+    return () => clearTimeout(timeoutId);
+  }, [scale]);
 
   const targetRef = useRef(null);
 
@@ -27,7 +39,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { transform: [{ scale }] }]}>
       <BlurTargetView ref={targetRef} style={styles.background}>
         <ImageBackground
           source={require("../../assets/images/background.png")}
@@ -47,7 +59,7 @@ export default function HomeScreen() {
 
         <Text style={styles.title}>SOFTLY</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
