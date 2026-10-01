@@ -1,42 +1,21 @@
 import { Tinos_400Regular, useFonts } from "@expo-google-fonts/tinos";
 import { BlurTargetView, BlurView } from "expo-blur";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
     ImageBackground,
     Linking,
     Platform,
+    Pressable,
     StyleSheet,
     Text,
     View,
 } from "react-native";
-import notes from "../data/notes";
-
-let remainingNotes = [];
 const serifFontFamily = Platform.select({
   ios: "Times New Roman",
   default: "Tinos_400Regular",
 });
-
-function getRandomMessage() {
-  if (remainingNotes.length === 0) {
-    remainingNotes = [...notes];
-
-    for (let i = remainingNotes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-
-      [remainingNotes[i], remainingNotes[j]] = [
-        remainingNotes[j],
-        remainingNotes[i],
-      ];
-    }
-  }
-
-  return remainingNotes.pop();
-}
-
-export default function MessageScreen() {
+export default function MessageScreen({ message, onHome }) {
   useFonts({ Tinos_400Regular });
-  const [message] = useState(getRandomMessage);
   const targetRef = useRef(null);
 
   return (
@@ -48,6 +27,10 @@ export default function MessageScreen() {
           resizeMode="cover"
         />
       </BlurTargetView>
+
+      <Pressable onPress={onHome} style={styles.homeButton}>
+        <Text style={styles.homeButtonText}>Home</Text>
+      </Pressable>
 
       <View style={styles.outerNote}>
         <View style={styles.innerNote}>
@@ -91,6 +74,20 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  homeButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: "#fff5f6",
+  },
+  homeButtonText: {
+    color: "#a34859",
+    fontSize: 15,
   },
   outerNote: {
     width: 350,

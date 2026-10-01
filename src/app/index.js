@@ -1,4 +1,5 @@
 import { Caprasimo_400Regular, useFonts } from "@expo-google-fonts/caprasimo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BlurTargetView, BlurView } from "expo-blur";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -9,8 +10,66 @@ import {
   Text,
   View,
 } from "react-native";
+import notes from "../data/notes";
 import IntroScreen from "./intro";
 import MessageScreen from "./message";
+
+const NOTE_CYCLE_STORAGE_KEY = "softly.note-cycle.v1";
+
+function shuffleNotes() {
+  const shuffled = [...notes];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
+function hasSameOrder(first, second) {
+  return (
+    first.length === second.length &&
+    first.every((note, index) => note === second[index])
+  );
+}
+
+async function getNextStoredNote() {
+  const storedValue = await AsyncStorage.getItem(NOTE_CYCLE_STORAGE_KEY);
+  let cycle;
+  let nextIndex = 0;
+
+  try {
+    const stored = JSON.parse(storedValue);
+    if (
+      Array.isArray(stored?.cycle) &&
+      stored.cycle.length === notes.length &&
+      stored.cycle.every((note) => notes.includes(note)) &&
+      Number.isInteger(stored.nextIndex) &&
+      stored.nextIndex >= 0 &&
+      stored.nextIndex <= notes.length
+    ) {
+      cycle = stored.cycle;
+      nextIndex = stored.nextIndex;
+    }
+  } catch {}
+
+  if (!cycle || nextIndex === cycle.length) {
+    const previousCycle = cycle;
+    cycle = shuffleNotes();
+    if (previousCycle && hasSameOrder(cycle, previousCycle)) {
+      cycle.push(cycle.shift());
+    }
+    nextIndex = 0;
+  }
+
+  const message = cycle[nextIndex];
+  await AsyncStorage.setItem(
+    NOTE_CYCLE_STORAGE_KEY,
+    JSON.stringify({ cycle, nextIndex: nextIndex + 1 }),
+  );
+  return message;
+}
 
 export default function SplashScreen() {
   const [fontsLoaded] = useFonts({
@@ -20,6 +79,8 @@ export default function SplashScreen() {
   const scale = useRef(new Animated.Value(1)).current;
   const [showIntro, setShowIntro] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState(null);
+  const isSelectingMessage = useRef(false);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       Animated.timing(scale, {
@@ -36,6 +97,21 @@ export default function SplashScreen() {
     return () => clearTimeout(timeoutId);
   }, [scale]);
 
+  const handleHeartPress = async () => {
+    if (isSelectingMessage.current) return;
+    isSelectingMessage.current = true;
+
+    try {
+      const nextMessage = await getNextStoredNote();
+      setMessage(nextMessage);
+      setShowMessage(true);
+    } catch (error) {
+      console.error("Unable to load the next saved note", error);
+    } finally {
+      isSelectingMessage.current = false;
+    }
+  };
+
   const targetRef = useRef(null);
 
   if (!fontsLoaded) {
@@ -47,11 +123,13 @@ export default function SplashScreen() {
   }
 
   if (showMessage) {
-    return <MessageScreen />;
+    return (
+      <MessageScreen message={message} onHome={() => setShowMessage(false)} />
+    );
   }
 
   if (showIntro) {
-    return <IntroScreen onHeartPress={() => setShowMessage(true)} />;
+    return <IntroScreen onHeartPress={handleHeartPress} />;
   }
 
   return (
