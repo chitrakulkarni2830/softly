@@ -1,56 +1,70 @@
-# Welcome to your Expo app 👋
+# Softly
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Softly is a small, comforting app for taking a moment to feel encouraged. Tap the heart on the Home screen to receive a warm message, then return whenever you need another. Its quiet visual style uses a soft illustrated background, translucent panels, and gentle animation.
 
-## Get started
+## Features
 
-1. Install dependencies
+- A heart interaction reveals a randomly ordered collection of supportive notes.
+- Notes are cycled without repeats until the collection has been shown, then shuffled for the next cycle.
+- The current position in the note cycle is saved on the device with AsyncStorage, so it survives app restarts.
+- A Home action returns from a note, and an optional support link opens the creator's support page.
+- Home and Explore tabs are provided through Expo Router. Explore currently contains starter content.
+- Runs on iOS, Android, and web through Expo.
 
-   ```bash
-   npm install
-   ```
+## Getting started
 
-2. Start the app
+### Requirements
 
-   ```bash
-   npx expo start
-   ```
+- Node.js and npm
+- Expo Go for a quick device preview, or an iOS/Android simulator or development build
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Install and run
 
 ```bash
-npm run reset-project
+npm ci
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Use the options printed by Expo to open the project on a device or simulator. To launch a specific target directly:
 
-### Other setup steps
+```bash
+npm run ios
+npm run android
+npm run web
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Development commands
 
-## Learn more
+| Command            | Description                              |
+| ------------------ | ---------------------------------------- |
+| `npm start`        | Start the Expo development server        |
+| `npm run ios`      | Start Expo and open the iOS simulator    |
+| `npm run android`  | Start Expo and open the Android emulator |
+| `npm run web`      | Start the web version                    |
+| `npm run lint`     | Run Expo's ESLint checks                 |
+| `npx tsc --noEmit` | Type-check the TypeScript files          |
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```text
+src/
+  app/             Expo Router routes and screen components
+  components/      Shared interface components and tab navigation
+  constants/       Theme and layout constants
+  data/notes.js    The messages shown on the Home screen
+  hooks/           Theme and color-scheme hooks
+assets/images/     App artwork, icons, and backgrounds
+```
 
-## Join the community
+The Home route in `src/app/index.js` coordinates the intro, note selection, and message screen. `src/app/intro.js` contains the heart interaction, while `src/app/message.js` displays the selected note. The note list and its order are managed in `src/data/notes.js`.
 
-Join our community of developers creating universal apps.
+## Customize the notes
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Add, edit, or remove strings in `src/data/notes.js`. The app shuffles the available messages and stores the cycle and next position locally. If the collection changes, an incompatible saved cycle is discarded automatically.
+
+## Built with
+
+- [Expo SDK 57](https://docs.expo.dev/versions/v57.0.0/)
+- [React Native](https://reactnative.dev/)
+- [Expo Router](https://docs.expo.dev/router/introduction/)
+- AsyncStorage for local note-cycle persistence
