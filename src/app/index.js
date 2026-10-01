@@ -1,6 +1,6 @@
 import { Caprasimo_400Regular, useFonts } from "@expo-google-fonts/caprasimo";
 import { BlurTargetView, BlurView } from "expo-blur";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -9,20 +9,28 @@ import {
   Text,
   View,
 } from "react-native";
+import IntroScreen from "./intro";
+import MessageScreen from "./message";
 
-export default function HomeScreen() {
+export default function SplashScreen() {
   const [fontsLoaded] = useFonts({
     Caprasimo_400Regular,
   });
 
   const scale = useRef(new Animated.Value(1)).current;
+  const [showIntro, setShowIntro] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       Animated.timing(scale, {
         toValue: 0,
         duration: 350,
         useNativeDriver: true,
-      }).start();
+      }).start(({ finished }) => {
+        if (finished) {
+          setShowIntro(true);
+        }
+      });
     }, 900);
 
     return () => clearTimeout(timeoutId);
@@ -38,8 +46,16 @@ export default function HomeScreen() {
     );
   }
 
+  if (showMessage) {
+    return <MessageScreen />;
+  }
+
+  if (showIntro) {
+    return <IntroScreen onHeartPress={() => setShowMessage(true)} />;
+  }
+
   return (
-    <Animated.View style={[styles.container, { transform: [{ scale }] }]}>
+    <View style={styles.container}>
       <BlurTargetView ref={targetRef} style={styles.background}>
         <ImageBackground
           source={require("../../assets/images/background.png")}
@@ -47,7 +63,7 @@ export default function HomeScreen() {
         />
       </BlurTargetView>
 
-      <View style={styles.glassFrame}>
+      <Animated.View style={[styles.glassFrame, { transform: [{ scale }] }]}>
         <BlurView
           blurTarget={targetRef}
           blurMethod="dimezisBlurView"
@@ -58,8 +74,8 @@ export default function HomeScreen() {
         <View style={styles.glassColor} />
 
         <Text style={styles.title}>SOFTLY</Text>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </View>
   );
 }
 
